@@ -1,6 +1,8 @@
 package com.neuedu.dao;
 
 import com.neuedu.pojo.UserInfo;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 public interface UserInfoMapper {
@@ -43,4 +45,15 @@ public interface UserInfoMapper {
      * @mbg.generated
      */
     int updateByPrimaryKey(UserInfo record);
+
+    /**
+     * 检查用户名
+     * */
+    int  checkUsername(String username);
+
+    /**
+     * 根据用户名和密码查询
+     * */
+    UserInfo selectLogin(@Param("username") String username,@Param("password") String password);
+
 }
