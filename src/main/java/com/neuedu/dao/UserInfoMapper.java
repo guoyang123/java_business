@@ -50,10 +50,27 @@ public interface UserInfoMapper {
      * 检查用户名
      * */
     int  checkUsername(String username);
+    /**
+     * 检查邮箱
+     * */
+    int  checkEmail(String email);
 
     /**
      * 根据用户名和密码查询
      * */
     UserInfo selectLogin(@Param("username") String username,@Param("password") String password);
+    /**
+     * 根据用户名查询密保问题
+     * */
+    String selectQuestionByUsername(String username);
+
+    /**
+     * 校验用户密保答案
+     * */
+    int  check_forget_answer(@Param("username") String username,@Param("question") String question,@Param("answer") String answer);
+   /**
+    * 根据用户名修改密码
+    * */
+  int  updatePasswordByUsername(@Param("username") String username,@Param("password") String newPassword);
 
 }
