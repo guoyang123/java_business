@@ -45,6 +45,7 @@ public interface UserInfoMapper {
      * @mbg.generated
      */
     int updateByPrimaryKey(UserInfo record);
+    int updateBySelectedActive(UserInfo record);
 
     /**
      * 检查用户名
@@ -72,5 +73,14 @@ public interface UserInfoMapper {
     * 根据用户名修改密码
     * */
   int  updatePasswordByUsername(@Param("username") String username,@Param("password") String newPassword);
+  /**
+   * 根据userid和passworldOld查询
+   * */
+  int  selectCountByUserIdAndPassowrd(@Param("userid") int userid,@Param("password") String  password);
+
+/**
+ * 校验邮箱
+ * */
+int  checkEmailByUseridAndEamil(@Param("userid") int userid,@Param("emailNew")String email);
 
 }

@@ -1,6 +1,7 @@
 package com.neuedu.controller.portal;
 
 import com.neuedu.common.Const;
+import com.neuedu.common.ResponseCode;
 import com.neuedu.common.ServerResponse;
 import com.neuedu.pojo.UserInfo;
 import com.neuedu.service.IUserService;
@@ -78,5 +79,58 @@ public  ServerResponse forget_reset_password(String username,String passwordNew,
     return userService.forget_reset_password(username, passwordNew, forgetToken);
 }
 
+/**
+ * 登录中状态重置密码
+ * */
+@RequestMapping(value = "/reset_password.do")
+public ServerResponse reset_password(String passwordOld,String passwordNew,HttpSession session){
 
+    UserInfo userInfo=(UserInfo) session.getAttribute(Const.CURRENT_USER);
+    if(userInfo==null){//用户未登录或者登录过期,当前端收到status=10,就会跳转到登录页面
+        return ServerResponse.createByError(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
+    }
+
+    return userService.reset_password(passwordOld,passwordNew,userInfo);
+}
+
+
+/**
+ * 登录状态更新个人信息
+ * */
+@RequestMapping(value = "/update_information.do")
+public  ServerResponse updateUserInfo(UserInfo user,HttpSession session){
+
+    UserInfo userInfo=(UserInfo) session.getAttribute(Const.CURRENT_USER);
+    if(userInfo==null){//用户未登录或者登录过期,当前端收到status=10,就会跳转到登录页面
+        return ServerResponse.createByError(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
+    }
+    user.setId(userInfo.getId());
+    user.setUsername(userInfo.getUsername());
+    user.setRole(Const.USERROLE.CUSTOMERUSER);
+    return userService.updateUserInfo(user);
+}
+
+/**
+ * 获取当前登录用户的详细信息
+ * */
+@RequestMapping(value = "/get_inforamtion.do")
+ public  ServerResponse get_information(HttpSession session){
+
+    UserInfo userInfo=(UserInfo) session.getAttribute(Const.CURRENT_USER);
+    if(userInfo==null){//用户未登录或者登录过期,当前端收到status=10,就会跳转到登录页面
+        return ServerResponse.createByError(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
+    }
+    return ServerResponse.createBySuccess("success",userInfo);
+
+ }
+
+ /**
+  * 退出登录
+  * */
+ @RequestMapping(value = "/logout.do")
+public ServerResponse logout(HttpSession session){
+
+     session.removeAttribute(Const.CURRENT_USER);
+     return ServerResponse.createBySuccess("退出成功");
+}
 }

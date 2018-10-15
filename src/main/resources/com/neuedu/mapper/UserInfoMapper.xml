@@ -56,6 +56,30 @@
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <update id="updateBySelectedActive" parameterType="com.neuedu.pojo.UserInfo">
+    update neuedu_user
+    <set>
+    <if test="password!=null">
+      password=#{password},
+    </if>
+    <if test="email!=null">
+      email=#{email},
+    </if>
+    <if test="question!=null">
+      question=#{question},
+    </if>
+    <if test="answer!=null">
+      answer=#{answer},
+    </if>
+    <if test="phone!=null">
+      phone=#{phone},
+    </if>
+    </set>
+    where id=#{id}
+
+  </update>
+
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     <!--
       WARNING - @mbg.generated
@@ -107,5 +131,17 @@
         update neuedu_user set password=#{password},update_time=now() where username=#{username}
 
     </update>
+
+  <select id="selectCountByUserIdAndPassowrd" resultType="int" parameterType="map">
+
+    select count(1) from neuedu_user where id=#{userid} and password=#{password}
+
+  </select>
+
+  <select id="checkEmailByUseridAndEamil" parameterType="map" resultType="int">
+
+    SELECT  count(1) from neuedu_user where id!=#{userid} and email=#{emailNew}
+
+  </select>
 
 </mapper>

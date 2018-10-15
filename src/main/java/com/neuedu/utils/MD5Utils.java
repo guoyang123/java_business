@@ -51,7 +51,7 @@ public class MD5Utils {
   public static String GetMD5Code(String strObj) {
     String resultString = null;
     try {
-      resultString = new String(strObj);
+      resultString = new String(strObj+"businesssdafaqj23ou89ZXcj@#$@#$#@KJdjklj;D../dSF.,");
       MessageDigest md = MessageDigest.getInstance("MD5");
       // md.digest() 该函数返回值为存放哈希值结果的byte数组
       resultString = byteToString(md.digest(strObj.getBytes()));
@@ -63,7 +63,8 @@ public class MD5Utils {
 
   public static void main(String[] args) {
     //MD5Utils getMD5 = new MD5Utils();
-    System.out.println(MD5Utils.GetMD5Code("admin"));
+    //businesssdafaqj23ou89ZXcj@#$@#$#@KJdjklj;D../dSF.,
+    System.out.println(MD5Utils.GetMD5Code("adminbusinesssdafaqj23ou89ZXcj@#$@#$#@KJdjklj;D../dSF.,"));
 
   }
 

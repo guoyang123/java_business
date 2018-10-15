@@ -184,4 +184,53 @@ public class UserServiceImpl implements IUserService {
         }
 
     }
+
+    @Override
+    public ServerResponse reset_password(String passwordOld, String passwordNew, UserInfo userInfo) {
+
+        //step1：非空校验
+        if(passwordOld==null||passwordOld.equals("")){
+            return ServerResponse.createByError("旧密码不能为空");
+        }
+        if(passwordNew==null||passwordNew.equals("")){
+            return ServerResponse.createByError("新密码不能为空");
+        }
+        //step1:根据userid和passworldOld 校验，防止横线越权
+         int result=userInfoMapper.selectCountByUserIdAndPassowrd(userInfo.getId(),MD5Utils.GetMD5Code(passwordOld));
+        if(result>0){
+            //说明用户的旧密码正确
+            userInfo.setPassword(MD5Utils.GetMD5Code(passwordNew));
+            //step2；修改密码
+           int update_result= userInfoMapper.updateBySelectedActive(userInfo);
+           if(update_result>0){
+               //更新成功
+               return ServerResponse.createBySuccess("密码更新成功");
+           }else{
+               return ServerResponse.createByError("密码更新失败");
+           }
+        }else {
+            return ServerResponse.createByError("旧密码错误");
+        }
+
+
+
+    }
+
+    @Override
+    public ServerResponse updateUserInfo(UserInfo user) {
+
+        //校验邮箱是否存在  userid email
+     int result= userInfoMapper.checkEmailByUseridAndEamil(user.getId(),user.getEmail());
+     if(result>0){
+         //邮箱已存在
+         return ServerResponse.createByError("邮箱存在");
+     }
+     //更新用户信息
+        int update_result=userInfoMapper.updateBySelectedActive(user);
+        if(update_result>0){
+            return ServerResponse.createBySuccess("更新成功");
+        }else{
+            return ServerResponse.createByError("更新失败");
+        }
+    }
 }
