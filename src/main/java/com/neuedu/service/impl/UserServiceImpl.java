@@ -1,5 +1,7 @@
 package com.neuedu.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.neuedu.common.Const;
 import com.neuedu.common.ServerResponse;
 import com.neuedu.dao.UserInfoMapper;
@@ -10,6 +12,7 @@ import com.neuedu.utils.MD5Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -232,5 +235,26 @@ public class UserServiceImpl implements IUserService {
         }else{
             return ServerResponse.createByError("更新失败");
         }
+    }
+
+    @Override
+    public ServerResponse selectUserByPageNo(int pageNo, int pageSize) {
+
+       List<UserInfo> userInfoList= userInfoMapper.selectAll();
+       PageHelper.startPage(pageNo,pageSize);
+       //分页模型
+       PageInfo pageInfo=new PageInfo(userInfoList);
+       pageInfo.setList(userInfoList);
+       return ServerResponse.createBySuccess("成功",pageInfo);
+
+    }
+
+    @Override
+    public ServerResponse checkUserAdmin(UserInfo userInfo) {
+
+        if(userInfo.getRole().intValue()==Const.USERROLE.ADMINUSER){
+            return ServerResponse.createBySuccess();
+        }
+        return ServerResponse.createByError();
     }
 }

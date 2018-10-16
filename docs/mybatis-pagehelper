@@ -1,0 +1,43 @@
+Mybatis-PageHelper  -----分页组件，可以动态排序
+开源,github地址： https://github.com/pagehelper/Mybatis-PageHelper
+ssm中集成Mybatis-PageHelper
+step1:pom.xml加载依赖
+        <!--mybatis-pagehelper -->
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.miemiedev</groupId>
+            <artifactId>mybatis-paginator</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jsqlparser</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>0.9.4</version>
+        </dependency>
+ step2:spring配置文件中修改SqlSessionFactoryBean
+           <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+               <property name="dataSource" ref="dataSource"/>
+               <property name="mapperLocations" value="classpath*:mappers/*Mapper.xml"></property>
+
+               <!-- 分页插件 -->
+               <property name="plugins">
+                   <array>
+                       <bean class="com.github.pagehelper.PageHelper">
+                           <property name="properties">
+                               <value>
+                                   dialect=mysql
+                               </value>
+                           </property>
+                       </bean>
+                   </array>
+               </property>
+
+           </bean>
+step3:在项目中使用分页插件
+         PageHelper.startPage(pageNo,pageSize);
+         PageInfo pageInfo=new PageInfo(数据集合);
+         pageInfo即为分页模型

@@ -15,4 +15,19 @@ public interface IUserService {
     public  ServerResponse forget_reset_password(String username,String passwordNew,String forgetToken);
    public  ServerResponse reset_password(String passwordOld,String passwordNew,UserInfo userInfo);
    public ServerResponse  updateUserInfo(UserInfo user);
+
+
+   /**
+    * 分页查询
+    * @param  pageNo 页码(第几页)
+    *@param  pageSize 查询数据量
+    * */
+   public ServerResponse selectUserByPageNo(int pageNo,int pageSize);
+
+   /**
+    * 判断是否为管理员
+    * */
+   public  ServerResponse checkUserAdmin(UserInfo userInfo);
+
+
 }

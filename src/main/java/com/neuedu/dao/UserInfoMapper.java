@@ -83,4 +83,5 @@ public interface UserInfoMapper {
  * */
 int  checkEmailByUseridAndEamil(@Param("userid") int userid,@Param("emailNew")String email);
 
+
 }
