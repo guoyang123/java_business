@@ -239,12 +239,11 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public ServerResponse selectUserByPageNo(int pageNo, int pageSize) {
-
+//select count(1) from table;
+        PageHelper.startPage(pageNo,pageSize);
        List<UserInfo> userInfoList= userInfoMapper.selectAll();
-       PageHelper.startPage(pageNo,pageSize);
        //分页模型
        PageInfo pageInfo=new PageInfo(userInfoList);
-       pageInfo.setList(userInfoList);
        return ServerResponse.createBySuccess("成功",pageInfo);
 
     }

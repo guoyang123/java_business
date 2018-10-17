@@ -39,8 +39,8 @@
       )
     values (#{id,jdbcType=INTEGER}, #{categoryId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, 
       #{subtitle,jdbcType=VARCHAR}, #{mainImage,jdbcType=VARCHAR}, #{price,jdbcType=DECIMAL}, 
-      #{stock,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{subImages,jdbcType=LONGVARCHAR}, #{detail,jdbcType=LONGVARCHAR}
+      #{stock,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, now(),
+     now(), #{subImages,jdbcType=LONGVARCHAR}, #{detail,jdbcType=LONGVARCHAR}
       )
   </insert>
   <update id="updateByPrimaryKey" parameterType="com.neuedu.pojo.Product">
@@ -57,11 +57,53 @@
       stock = #{stock,jdbcType=INTEGER},
       status = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      update_time =now(),
       sub_images = #{subImages,jdbcType=LONGVARCHAR},
       detail = #{detail,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.neuedu.pojo.Product">
+
+    UPDATE  neuedu_product
+    <set>
+       <if test="categoryId!=null">
+         category_id = #{categoryId,jdbcType=INTEGER},
+       </if>
+
+      <if test="name!=null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="subtitle!=null">
+        subtitle = #{subtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="mainImage!=null">
+        main_image = #{mainImage,jdbcType=VARCHAR},
+      </if>
+      <if test="price!=null">
+        price = #{price,jdbcType=DECIMAL},
+      </if>
+      <if test="stock!=null">
+        stock = #{stock,jdbcType=INTEGER},
+      </if>
+      <if test="status!=null">
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="name!=null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="subImages!=null">
+        sub_images = #{subImages,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="detail!=null">
+        detail = #{detail,jdbcType=LONGVARCHAR}
+    </if>
+      update_time =now(),
+    </set>
+    WHERE  id= #{id,jdbcType=INTEGER}
+
+  </update>
+
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     <!--
       WARNING - @mbg.generated
