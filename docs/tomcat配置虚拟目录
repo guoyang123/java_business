@@ -1,0 +1,2 @@
+  <!--配置虚拟目录-->
+     <Context  path="/uploadpic"  docBase="D:/ftpfile" reloadable="true"/>

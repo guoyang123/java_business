@@ -112,4 +112,31 @@ public class ProductManageController {
 
     }
 
+    /**
+     * 产品搜索
+     * */
+    @RequestMapping(value = "/search.do")
+    public ServerResponse search(@RequestParam(required = false) Integer productId,
+                                 @RequestParam(required = false)String productName,
+                                 @RequestParam(required = false,defaultValue = "1") Integer pageNo,
+                                 @RequestParam(required = false,defaultValue = "10") Integer pageSize,
+                                 HttpSession session){
+
+        //用户是否登录
+        UserInfo userInfo=(UserInfo) session.getAttribute(Const.CURRENT_USER);
+        if(userInfo==null){//需要登录
+            return ServerResponse.createByError(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
+        }
+        //是否有管理员权限
+        ServerResponse serverResponse=userService.checkUserAdmin(userInfo);
+        if(serverResponse.isSuccess()){//有管理员权限
+            return productService.searchProductsByProductIdOrProductName(productId,productName,pageNo,pageSize);
+        }else{
+            return ServerResponse.createByError("用户无权限操作");
+
+        }
+
+    }
+
+
 }

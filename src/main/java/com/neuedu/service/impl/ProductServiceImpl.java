@@ -7,6 +7,7 @@ import com.neuedu.dao.CategoryMapper;
 import com.neuedu.dao.ProductMapper;
 import com.neuedu.pojo.Category;
 import com.neuedu.pojo.Product;
+import com.neuedu.service.ICategoryService;
 import com.neuedu.service.IProductService;
 import com.neuedu.utils.DateUtil;
 import com.neuedu.utils.PropertiesUtil;
@@ -18,7 +19,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ProductServiceImpl implements IProductService {
@@ -26,6 +29,8 @@ public class ProductServiceImpl implements IProductService {
     ProductMapper productMapper;
     @Autowired
     CategoryMapper categoryMapper;
+    @Autowired
+    ICategoryService categoryService;
     @Override
     public ServerResponse saveOrUpdate(Product product) {
         if(product==null){
@@ -88,14 +93,7 @@ public class ProductServiceImpl implements IProductService {
        List<Product> productList= productMapper.selectAll();
        List<ProductListVO> productListVOList=new ArrayList<>();
        for(Product product:productList){
-           ProductListVO productListVO=new ProductListVO();
-           productListVO.setCategoryId(product.getCategoryId());
-           productListVO.setId(product.getId());
-           productListVO.setMainImage(product.getMainImage());
-           productListVO.setName(product.getName());
-           productListVO.setPrice(product.getPrice());
-           productListVO.setStatus(product.getStatus());
-           productListVO.setSubtitle(product.getSubtitle());
+           ProductListVO productListVO=assembleProductListVO(product);
            productListVOList.add(productListVO);
        }
 
@@ -106,6 +104,21 @@ public class ProductServiceImpl implements IProductService {
         return ServerResponse.createBySuccess("成功",pageInfo);
     }
 
+    /**
+     * Product-->ProductListVO
+     * */
+     private  ProductListVO assembleProductListVO(Product product){
+
+         ProductListVO productListVO=new ProductListVO();
+         productListVO.setCategoryId(product.getCategoryId());
+         productListVO.setId(product.getId());
+         productListVO.setMainImage(product.getMainImage());
+         productListVO.setName(product.getName());
+         productListVO.setPrice(product.getPrice());
+         productListVO.setStatus(product.getStatus());
+         productListVO.setSubtitle(product.getSubtitle());
+         return productListVO;
+     }
     @Override
     public ServerResponse findProductDetail(Integer productId) {
 
@@ -144,6 +157,67 @@ public class ProductServiceImpl implements IProductService {
 
 
         return ServerResponse.createByError("商品不存在");
+    }
+
+    @Override
+    public ServerResponse searchProductsByProductIdOrProductName(Integer productId, String productName, Integer pageNo, Integer pageSize) {
+
+        if(productName!=null&&!productName.equals("")){ //  name like %productName%
+            productName="%"+productName+"%";
+        }
+       PageHelper.startPage(pageNo,pageSize);
+       List<Product> productList=  productMapper.searchProduct(productId,productName);
+       PageInfo pageInfo=new PageInfo(productList);
+       List<ProductListVO> productListVOList=new ArrayList<>();
+       for(Product product:productList){
+         ProductListVO productListVO=assembleProductListVO(product);
+         productListVOList.add(productListVO);
+       }
+      pageInfo.setList(productListVOList);
+
+        return ServerResponse.createBySuccess("成功",pageInfo);
+    }
+
+    /**
+     * 前台-商品搜索接口
+     * */
+    @Override
+    public ServerResponse searchProduct(String keyword, Integer categoryId, Integer pageNo, Integer pageSize, String orderBy) {
+
+         //非空判断
+         if(keyword==null&& categoryId==null){
+             return ServerResponse.createByError("参数错误");
+         }
+        Set<Category> categorySet=new HashSet<>();
+        if(categoryId!=null){
+            Category category= categoryMapper.selectByPrimaryKey(categoryId);
+            if(category==null&&keyword==null){//没有商品
+                PageHelper.startPage(pageNo,pageSize);
+                List<ProductListVO> productListVOList=new ArrayList<>();
+                PageInfo pageInfo=new PageInfo(productListVOList);
+              return   ServerResponse.createBySuccess("没有商品",pageInfo);
+            }
+            //递归后代节点
+
+            categorySet= categoryService.findChildCategory(categorySet,categoryId);
+
+        }
+
+        if(keyword!=null&&!keyword.equals("")){
+            keyword="%"+keyword+"%";
+        }
+     PageHelper.startPage(pageNo,pageSize);
+     List<Product> productList=  productMapper.findProductByCategoryIdsAndKeyWord(categorySet,keyword);
+     PageInfo pageInfo=new PageInfo(productList);
+     List<ProductListVO> productListVOList=new ArrayList<>();
+     for(Product product:productList){
+         productListVOList.add(assembleProductListVO(product));
+     }
+        pageInfo.setList(productListVOList);
+
+
+
+        return ServerResponse.createBySuccess("成功",pageInfo);
     }
 
 

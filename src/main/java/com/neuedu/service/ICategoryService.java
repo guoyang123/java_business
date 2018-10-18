@@ -1,7 +1,10 @@
 package com.neuedu.service;
 
 import com.neuedu.common.ServerResponse;
+import com.neuedu.pojo.Category;
 import org.springframework.web.servlet.view.InternalResourceView;
+
+import java.util.Set;
 
 
 public interface ICategoryService {
@@ -24,4 +27,5 @@ public interface ICategoryService {
     * 递归查询本节点和后代节点
     * */
    ServerResponse get_deep_category(Integer categoryId);
+   Set<Category> findChildCategory(Set<Category> categorySet, Integer categoryId);
 }
