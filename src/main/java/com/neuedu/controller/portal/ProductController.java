@@ -28,4 +28,8 @@ public class ProductController {
 
         return productService.searchProduct(keyword,categoryId,pageNo,pageSize,orderBy);
     }
+    @RequestMapping(value = "/detail.do")
+    public  ServerResponse productDeatail(Integer productId){
+        return productService.productDeatail(productId);
+    }
 }

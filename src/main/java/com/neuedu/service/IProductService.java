@@ -42,4 +42,9 @@ public interface IProductService {
      * */
     ServerResponse searchProduct( String keyword, Integer categoryId, Integer pageNo, Integer pageSize, String orderBy);
 
+    /**
+     * 前台 -获取产品详情
+     * */
+    ServerResponse productDeatail(Integer productId);
+
 }

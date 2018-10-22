@@ -1,7 +1,9 @@
 package com.neuedu.service.impl;
 
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.neuedu.common.Const;
 import com.neuedu.common.ServerResponse;
 import com.neuedu.dao.CategoryMapper;
 import com.neuedu.dao.ProductMapper;
@@ -126,38 +128,45 @@ public class ProductServiceImpl implements IProductService {
             return  ServerResponse.createByError("商品id必须传递");
         }
        Product product= productMapper.selectByPrimaryKey(productId);
-       if(product!=null){
-
-           ProductDetailVO productDetailVO=new ProductDetailVO();
-           productDetailVO.setCategoryId(product.getCategoryId());
-           productDetailVO.setName(product.getName());
-           productDetailVO.setId(product.getId());
-           productDetailVO.setDetail(product.getDetail());
-           productDetailVO.setMainImage(product.getMainImage());
-           productDetailVO.setPrice(product.getPrice());
-           productDetailVO.setStock(product.getStock());
-           productDetailVO.setStatus(product.getStatus());
-           productDetailVO.setSubImages(product.getSubImages());
-           productDetailVO.setSubtitle(product.getSubtitle());
-
-           Category category=categoryMapper.selectByPrimaryKey(product.getCategoryId());
-           if(category==null){
-               productDetailVO.setParentCategoryId(0);
-           }else{
-               productDetailVO.setParentCategoryId(category.getParentId());
-           }
-
-           //imagehost
-           productDetailVO.setImageHost((String) PropertiesUtil.getProperty("imagehost"));
-           productDetailVO.setCreateTime(DateUtil.dateToStr(product.getCreateTime()));
-           productDetailVO.setUpdateTime(DateUtil.dateToStr(product.getUpdateTime()));
-          return ServerResponse.createBySuccess("成功",productDetailVO);
-       }
-
-
+       ProductDetailVO productDetailVO=assembleProductDetailVO(product);
+      if(productDetailVO!=null){
+          return  ServerResponse.createBySuccess("成功",productDetailVO);
+      }
 
         return ServerResponse.createByError("商品不存在");
     }
+
+     private ProductDetailVO assembleProductDetailVO(Product product){
+         if(product!=null){
+
+             ProductDetailVO productDetailVO=new ProductDetailVO();
+             productDetailVO.setCategoryId(product.getCategoryId());
+             productDetailVO.setName(product.getName());
+             productDetailVO.setId(product.getId());
+             productDetailVO.setDetail(product.getDetail());
+             productDetailVO.setMainImage(product.getMainImage());
+             productDetailVO.setPrice(product.getPrice());
+             productDetailVO.setStock(product.getStock());
+             productDetailVO.setStatus(product.getStatus());
+             productDetailVO.setSubImages(product.getSubImages());
+             productDetailVO.setSubtitle(product.getSubtitle());
+
+             Category category=categoryMapper.selectByPrimaryKey(product.getCategoryId());
+             if(category==null){
+                 productDetailVO.setParentCategoryId(0);
+             }else{
+                 productDetailVO.setParentCategoryId(category.getParentId());
+             }
+
+             //imagehost
+             productDetailVO.setImageHost((String) PropertiesUtil.getProperty("imagehost"));
+             productDetailVO.setCreateTime(DateUtil.dateToStr(product.getCreateTime()));
+             productDetailVO.setUpdateTime(DateUtil.dateToStr(product.getUpdateTime()));
+             return productDetailVO;
+         }
+
+         return null;
+     }
 
     @Override
     public ServerResponse searchProductsByProductIdOrProductName(Integer productId, String productName, Integer pageNo, Integer pageSize) {
@@ -207,6 +216,15 @@ public class ProductServiceImpl implements IProductService {
             keyword="%"+keyword+"%";
         }
      PageHelper.startPage(pageNo,pageSize);
+
+     if(orderBy!=null&&!orderBy.equals("")){
+         String[] orderByArr=orderBy.split("_");
+         if(orderByArr!=null&&orderByArr.length>1){
+             String  orderby_field=orderByArr[0];
+             String sort=orderByArr[1];
+             PageHelper.orderBy(orderby_field+" "+sort);
+         }
+     }
      List<Product> productList=  productMapper.findProductByCategoryIdsAndKeyWord(categorySet,keyword);
      PageInfo pageInfo=new PageInfo(productList);
      List<ProductListVO> productListVOList=new ArrayList<>();
@@ -218,6 +236,28 @@ public class ProductServiceImpl implements IProductService {
 
 
         return ServerResponse.createBySuccess("成功",pageInfo);
+    }
+
+    @Override
+    public ServerResponse productDeatail(Integer productId) {
+
+        //step1:非空判断
+        if(productId==null){
+            return ServerResponse.createByError("商品id必须传递");
+        }
+        //step2:根据productId查询商品信息
+        Product product=productMapper.selectByPrimaryKey(productId);
+        if(product==null){
+            return ServerResponse.createByError("商品已经被下架或删除");
+        }
+       if(product.getStatus()!= Const.ProductStatusEnum.PRODUCT_ONLLINE.getStatus()){
+           return ServerResponse.createByError("商品已经被下架或删除");
+       }
+
+       //product-productDetailVO
+        ProductDetailVO productDetailVO=assembleProductDetailVO(product);
+
+        return ServerResponse.createBySuccess(productDetailVO);
     }
 
 
