@@ -31,8 +31,8 @@
       quantity, checked, create_time, 
       update_time)
     values (#{id,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{productId,jdbcType=INTEGER}, 
-      #{quantity,jdbcType=INTEGER}, #{checked,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{quantity,jdbcType=INTEGER}, #{checked,jdbcType=INTEGER}, now(),
+     now())
   </insert>
   <update id="updateByPrimaryKey" parameterType="com.neuedu.pojo.Cart">
     <!--
@@ -49,6 +49,17 @@
     where id = #{id,jdbcType=INTEGER}
   </update>
 
+  <update id="checkedOrUncheckedProduct" parameterType="map">
+  update neuedu_cart
+  set
+  checked = #{checked},
+  update_time = now()
+  where user_id=#{userid}
+  <if test="productId!=null">
+    and product_id=#{productId}
+  </if>
+</update>
+
   <update id="updateByPrimaryKeyBySelectActive" parameterType="com.neuedu.pojo.Cart">
     <!--
       WARNING - @mbg.generated
@@ -56,10 +67,10 @@
     -->
     update neuedu_cart
     set
-    <if test="user_id!=null">
+    <if test="userId!=null">
       user_id = #{userId,jdbcType=INTEGER},
     </if>
-    <if test="product_id!=null">
+    <if test="productId!=null">
       product_id = #{productId,jdbcType=INTEGER},
     </if>
     <if test="quantity!=null">
@@ -104,4 +115,28 @@
     select count(1) from neuedu_cart where user_id=#{userid} and checked=0
 
   </select>
+  <select id="findCartByProductIdAndUserid" parameterType="map" resultMap="BaseResultMap">
+
+      select id, user_id, product_id, quantity, checked, create_time, update_time
+        from neuedu_cart where  user_id=#{userId} and product_id=#{productId}
+
+  </select>
+
+  <delete id="deleteByUseridAndProductIds" parameterType="map">
+
+    delete from neuedu_cart where user_id=#{userid}
+    <if test="productIdList!=null and productIdList.size>0">
+      and product_id in
+      <foreach collection="productIdList" item="productId" open="(" close=")" separator=",">
+        #{productId}
+      </foreach>
+    </if>
+
+  </delete>
+
+  <select id="selectCartProductCount" parameterType="int" resultType="int">
+     select  IFNULL(sum(quantity),0) as count  from neuedu_cart where user_id=#{userid}
+
+  </select>
+
 </mapper>

@@ -1,7 +1,9 @@
 package com.neuedu.service.impl;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.neuedu.common.Const;
+import com.neuedu.common.ServerResponse;
 import com.neuedu.dao.CartMapper;
 import com.neuedu.dao.ProductMapper;
 import com.neuedu.pojo.Cart;
@@ -51,7 +53,7 @@ public class CartServiceImpl implements ICartService {
                    cartProductVO.setProductPrice(product.getPrice());
                    cartProductVO.setProductStatus(product.getStatus());
                    cartProductVO.setProductStock(product.getStock());
-
+                   cartProductVO.setProductChecked(cart.getChecked());
                    //判断库存
                    int buyLimitCount=0;
                    if(product.getStock()>cart.getQuantity()){
@@ -71,7 +73,9 @@ public class CartServiceImpl implements ICartService {
                    cartProductVO.setQuantity(buyLimitCount);
                    BigDecimal cartProucttotalprice=  BigDecimalUtil.mul(product.getPrice().doubleValue(),cart.getQuantity().doubleValue());
                    cartProductVO.setProductTotalPrice(cartProucttotalprice);
-                   totalPrice=BigDecimalUtil.add(totalPrice.doubleValue(),cartProucttotalprice.doubleValue());
+                   if(cart.getChecked()==Const.Cart.CHECKED){
+                       totalPrice=BigDecimalUtil.add(totalPrice.doubleValue(),cartProucttotalprice.doubleValue());
+                   }
 
                }
                 cartProductVOList.add(cartProductVO);
@@ -89,4 +93,80 @@ public class CartServiceImpl implements ICartService {
     }
 
 
+    @Override
+    public ServerResponse add(Integer userid, Integer productId, Integer count) {
+        //step1:非空判断
+        if(productId==null||count==null){
+            return ServerResponse.createByError("参数错误");
+        }
+        //step2:根据productid查询Cart
+      Cart cart=  cartMapper.findCartByProductIdAndUserid(productId,userid);
+        if(cart==null){//购物车中没有改商品信息
+            Cart cartItem=new Cart();
+            cartItem.setQuantity(count);
+            cartItem.setChecked(Const.Cart.CHECKED);
+            cartItem.setProductId(productId);
+            cartItem.setUserId(userid);
+            cartMapper.insert(cartItem);
+        }else{//购物车已经存在改商品，需要更新商品的数量
+
+            cart.setQuantity(cart.getQuantity()+count);
+            cartMapper.updateByPrimaryKeyBySelectActive(cart);
+        }
+        CartVO cartVO=getCartVOLimit(userid);
+        return ServerResponse.createBySuccess(cartVO);
+    }
+
+    @Override
+    public ServerResponse list(Integer userid) {
+
+        CartVO cartVO=getCartVOLimit(userid);
+
+        return ServerResponse.createBySuccess(cartVO);
+    }
+
+    @Override
+    public ServerResponse update(Integer userid, Integer productId, Integer count) {
+        //step1:非空判断
+        if(productId==null||count==null){
+            return ServerResponse.createByError("参数错误");
+        }
+        Cart cart=cartMapper.findCartByProductIdAndUserid(productId,userid);
+        if(cart!=null){
+            cart.setQuantity(count);
+        }
+        cartMapper.updateByPrimaryKeyBySelectActive(cart);
+        CartVO cartVO=this.getCartVOLimit(userid);
+        return ServerResponse.createBySuccess(cartVO);
+    }
+
+    @Override
+    public ServerResponse delete(Integer userid, String productIds) {
+        //step1:非空判断
+        if(productIds==null||productIds.equals("")){
+            return ServerResponse.createByError("参数错误");
+        }
+       List<String> productIdList= Splitter.on(",").splitToList(productIds);
+        if(productIdList==null||productIdList.size()<=0){
+            return ServerResponse.createByError("参数错误");
+        }
+        cartMapper.deleteByUseridAndProductIds(productIdList,userid);
+        CartVO cartVO=getCartVOLimit(userid);
+
+        return ServerResponse.createBySuccess(cartVO);
+    }
+
+    @Override
+    public ServerResponse selectOrUnselect(Integer userid,Integer productId, Integer checked) {
+
+        cartMapper.checkedOrUncheckedProduct(userid,productId,checked);
+        CartVO cartVO=getCartVOLimit(userid);
+        return ServerResponse.createBySuccess(cartVO);
+    }
+
+    @Override
+    public ServerResponse<Integer> get_cart_product_count(Integer userid) {
+        int count= cartMapper.selectCartProductCount(userid);
+        return ServerResponse.createBySuccess(count);
+    }
 }

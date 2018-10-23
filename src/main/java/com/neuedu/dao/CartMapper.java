@@ -1,6 +1,8 @@
 package com.neuedu.dao;
 
 import com.neuedu.pojo.Cart;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 public interface CartMapper {
@@ -55,4 +57,23 @@ public interface CartMapper {
      * @return  0 ：全选
      * */
     public  int  isAllChecked(Integer userid);
+
+    Cart  findCartByProductIdAndUserid(@Param("productId") Integer productId, @Param("userId") Integer userid);
+
+    /**
+     * 批量删除
+     * */
+    int deleteByUseridAndProductIds(@Param("productIdList") List<String> productIdList,
+                                    @Param("userid") Integer userid);
+
+    /**
+     * 选中/取消选中
+     * */
+    int  checkedOrUncheckedProduct(@Param("userid")Integer userid,
+                                      @Param("productId") Integer productId,
+                                      @Param("checked") Integer checked);
+/**
+ * 查询购物车中商品数量
+ * */
+int selectCartProductCount(Integer userid);
 }
