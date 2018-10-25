@@ -139,4 +139,10 @@
 
   </select>
 
+  <select id="selectCheckedCartByUserid" parameterType="int" resultType="com.neuedu.pojo.Cart">
+
+     select id, user_id, product_id, quantity, checked, create_time, update_time
+        from neuedu_cart where  user_id=#{userId} and checked=1
+  </select>
+
 </mapper>

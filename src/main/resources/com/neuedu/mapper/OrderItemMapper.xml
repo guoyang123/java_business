@@ -77,4 +77,18 @@
     quantity, total_price, create_time, update_time
     from neuedu_order_item
   </select>
+  <insert id="batchInsertOrderItem" parameterType="list">
+    insert into neuedu_order_item (id, user_id, order_no,
+      product_id, product_name, product_image,
+      current_unit_price, quantity, total_price,
+      create_time, update_time)
+    values
+      <foreach collection="list" item="orderItem" open="(" close=")" separator=",">
+        #{id,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{orderNo,jdbcType=BIGINT},
+        #{productId,jdbcType=INTEGER}, #{productName,jdbcType=VARCHAR}, #{productImage,jdbcType=VARCHAR},
+        #{currentUnitPrice,jdbcType=DECIMAL}, #{quantity,jdbcType=INTEGER}, #{totalPrice,jdbcType=DECIMAL},
+        now(), now()}
+      </foreach>
+  </insert>
+
 </mapper>
