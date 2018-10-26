@@ -141,7 +141,7 @@
 
   <select id="selectCheckedCartByUserid" parameterType="int" resultType="com.neuedu.pojo.Cart">
 
-     select id, user_id, product_id, quantity, checked, create_time, update_time
+     select id, user_id as userId, product_id as productId, quantity, checked, create_time as createTime, update_time as updateTime
         from neuedu_cart where  user_id=#{userId} and checked=1
   </select>
 

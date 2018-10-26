@@ -1,5 +1,7 @@
 package com.neuedu.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import com.neuedu.common.Const;
 import com.neuedu.common.ServerResponse;
@@ -10,6 +12,7 @@ import com.neuedu.utils.BigDecimalUtil;
 import com.neuedu.utils.DateUtil;
 import com.neuedu.utils.PropertiesUtil;
 import com.neuedu.vo.OrderItemVO;
+import com.neuedu.vo.OrderProductVO;
 import com.neuedu.vo.OrderVO;
 import com.neuedu.vo.ShippingVO;
 import com.sun.org.apache.xpath.internal.operations.Or;
@@ -74,6 +77,8 @@ public class OrderServiceImpl implements IOrderService {
 
         return ServerResponse.createBySuccess(orderVO);
     }
+
+
 
     private OrderVO assembleOrderVO(Order order,List<OrderItem> orderItemList){
         OrderVO orderVO=new OrderVO();
@@ -238,4 +243,125 @@ public class OrderServiceImpl implements IOrderService {
         return ServerResponse.createBySuccess(orderItemList);
     }
 
+
+    @Override
+    public ServerResponse get_order_cart_product(Integer userId) {
+
+        OrderProductVO orderProductVO=new OrderProductVO();
+
+        //购物车获取购物信息
+        List<Cart> cartList=   cartMapper.selectCheckedCartByUserid(userId);
+       ServerResponse serverResponse= this.getCartOrderItem(userId,cartList);
+       if(!serverResponse.isSuccess()){
+           return serverResponse;
+       }
+       List<OrderItem> orderItemList=( List<OrderItem>)serverResponse.getData();
+       List<OrderItemVO> orderItemVOList=Lists.newArrayList();
+       BigDecimal totalPrice=new BigDecimal("0");
+       for(OrderItem orderItem:orderItemList){
+           totalPrice=BigDecimalUtil.add(totalPrice.doubleValue(),orderItem.getTotalPrice().doubleValue());
+           orderItemVOList.add(assembleOrderItemVO(orderItem));
+       }
+        orderProductVO.setImageHost((String) PropertiesUtil.getProperty("imagehost"));
+       orderProductVO.setOrderItemVOList(orderItemVOList);
+       orderProductVO.setProductTotalPrice(totalPrice);
+
+        return ServerResponse.createBySuccess(orderProductVO);
+    }
+
+    @Override
+    public ServerResponse list(Integer userId,Integer pageNum,Integer pageSize) {
+
+        PageHelper.startPage(pageNum,pageSize);
+        List<Order> orderList=null;
+        if(userId==null){
+            //管理员
+            orderList=orderMapper.selectAll();
+        }else{
+            orderList=orderMapper.selectAllByUserid(userId);
+        }
+
+        List<OrderVO> orderVOList=Lists.newArrayList();
+         for(Order order:orderList){
+             if(order==null){
+                 return ServerResponse.createByError("订单不存在");
+             }
+             List<OrderItem> orderItemList=orderItemMapper.selectAllByUseridAndOrderNo(userId,order.getOrderNo());
+            OrderVO orderVO=assembleOrderVO(order,orderItemList);
+             orderVOList.add(orderVO);
+         }
+
+        PageInfo pageInfo=new PageInfo(orderVOList);
+
+        return ServerResponse.createBySuccess(pageInfo);
+    }
+
+    @Override
+    public ServerResponse detail(Integer userId, Long orderNo) {
+        if(orderNo==null){
+            return  ServerResponse.createByError("订单号必须传递");
+        }
+        Order order=orderMapper.getOrderByUseridAndOrderNo(userId,orderNo);
+        if(order==null){
+            return  ServerResponse.createByError("未找到该订单");
+        }
+      List<OrderItem> orderItemList=  orderItemMapper.selectAllByUseridAndOrderNo(userId,orderNo);
+     OrderVO orderVO=   assembleOrderVO(order,orderItemList);
+
+        return ServerResponse.createBySuccess(orderVO);
+    }
+
+    @Override
+    public ServerResponse cancel(Integer userId, Long orderNo) {
+        if(orderNo==null){
+            return  ServerResponse.createByError("订单号必须传递");
+        }
+        Order order=orderMapper.getOrderByUseridAndOrderNo(userId,orderNo);
+        if(order==null){
+            return  ServerResponse.createByError("未找到该订单");
+        }
+        if(order.getStatus()!= Const.OrderStatusEnum.ORDER_UN_PAY.getStatus()){
+            return  ServerResponse.createByError("已付款订单无法取消");
+        }
+        Order order1=new Order();
+        order1.setId(order.getId());
+        order1.setStatus(Const.OrderStatusEnum.ORDER_CANCELLED.getStatus());
+       int result= orderMapper.updateOrderBySelectActive(order1);
+      if(result>0){
+          return ServerResponse.createBySuccess();
+      }
+        return ServerResponse.createByError();
+    }
+
+    @Override
+    public ServerResponse search(Long orderNo) {
+        if(orderNo==null){
+            return  ServerResponse.createByError("订单号必须传递");
+        }
+        Order order=orderMapper.selectOrderByOrderNo(orderNo);
+        if(order==null){
+            return  ServerResponse.createByError("未找到该订单");
+        }
+        List<OrderItem> orderItemList=  orderItemMapper.selectAllByUseridAndOrderNo(order.getUserId(),orderNo);
+        OrderVO orderVO=   assembleOrderVO(order,orderItemList);
+        return ServerResponse.createBySuccess(orderVO);
+    }
+
+    @Override
+    public ServerResponse send(Long orderNo) {
+        if(orderNo==null){
+            return  ServerResponse.createByError("订单号必须传递");
+        }
+        Order order=orderMapper.selectOrderByOrderNo(orderNo);
+        if(order==null){
+            return  ServerResponse.createByError("未找到该订单");
+        }
+        if(order.getStatus()==Const.OrderStatusEnum.ORDER_PAYED.getStatus()){
+            order.setStatus(Const.OrderStatusEnum.ORDER_SEND.getStatus());
+            order.setSendTime(new Date());
+            orderMapper.updateOrderBySelectActive(order);
+        }
+
+        return ServerResponse.createByError();
+    }
 }
