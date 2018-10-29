@@ -359,9 +359,13 @@ public class OrderServiceImpl implements IOrderService {
         if(order.getStatus()==Const.OrderStatusEnum.ORDER_PAYED.getStatus()){
             order.setStatus(Const.OrderStatusEnum.ORDER_SEND.getStatus());
             order.setSendTime(new Date());
-            orderMapper.updateOrderBySelectActive(order);
+           int result= orderMapper.updateOrderBySelectActive(order);
+           if(result>0){
+               return ServerResponse.createBySuccess();
+           }
         }
 
         return ServerResponse.createByError();
     }
 }
+

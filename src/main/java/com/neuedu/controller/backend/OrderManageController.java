@@ -84,7 +84,7 @@ public class OrderManageController {
     /**
      * 按照订单号查询
      * */
-    @RequestMapping(value = "/search.do")
+    @RequestMapping(value = "/send_goods.do")
     public ServerResponse send(HttpSession session,Long orderNo){
         //用户是否登录
         UserInfo userInfo=(UserInfo) session.getAttribute(Const.CURRENT_USER);
