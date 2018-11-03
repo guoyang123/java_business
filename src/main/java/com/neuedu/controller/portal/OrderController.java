@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 @RestController
@@ -85,4 +86,33 @@ public class OrderController {
         }
         return orderService.cancel(userInfo.getId(),orderNo);
     }
+
+
+    /**
+     * 下单支付接口
+     * */
+    @RequestMapping(value = "/pay.do")
+    public ServerResponse pay(HttpSession session,
+                                 Long orderNo){
+        //用户是否登录
+        UserInfo userInfo=(UserInfo) session.getAttribute(Const.CURRENT_USER);
+        if(userInfo==null){//需要登录
+            return ServerResponse.createByError(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
+        }
+        return orderService.pay(userInfo.getId(),orderNo);
+    }
+
+
+    /**
+     * 支付宝服务器回调商家服务器接口
+     * */
+    @RequestMapping(value = "/alipay_callback.do")
+    public  String callback(HttpServletRequest request){
+
+
+        System.out.println("======支付宝服务器回调到了应用服务器=========");
+
+        return null;
+    }
+
 }

@@ -33,4 +33,8 @@ public interface IOrderService {
      * 后台-订单发货
      * */
    ServerResponse  send(Long orderNo);
+   /**
+    * 前台-下单支付
+    * */
+  ServerResponse  pay(Integer userId, Long orderNo);
 }
