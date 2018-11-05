@@ -104,4 +104,26 @@ public class Const {
             return desc;
         }
     }
+    public  enum PayPlatformEnum{
+
+        PAY_ALIPAY(1,"支付宝"),
+        PAY_WX(2,"微信")
+        ;
+        private int  status;
+        private String desc;
+        private PayPlatformEnum(int status,String desc){
+            this.status=status;
+            this.desc=desc;
+        }
+
+
+
+        public int getStatus() {
+            return status;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
+    }
 }

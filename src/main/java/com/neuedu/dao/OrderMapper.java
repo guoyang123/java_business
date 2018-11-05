@@ -53,5 +53,9 @@ public interface OrderMapper {
     Order getOrderByUseridAndOrderNo(@Param("userId")Integer userId,@Param("orderNo")Long orderNo);
 
     Order selectOrderByOrderNo(Long orderNo);
+/**
+ * 根据订单号更新订单的状态
+ * */
+ int  updateOrderByOrderNo(Order order);
 
 }

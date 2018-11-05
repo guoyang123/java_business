@@ -26,6 +26,7 @@ import com.alipay.demo.trade.utils.ZxingUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.neuedu.common.Const;
 import com.neuedu.common.ServerResponse;
 import com.neuedu.dao.*;
@@ -61,6 +62,8 @@ public class OrderServiceImpl implements IOrderService {
     OrderItemMapper orderItemMapper;
     @Autowired
     ShippingMapper shippingMapper;
+    @Autowired
+    PayInfoMapper payInfoMapper;
 
     @Override
     public ServerResponse createOrder(Integer userid, Integer shippingid) {
@@ -407,12 +410,56 @@ public class OrderServiceImpl implements IOrderService {
         }
         //支付
         // 测试当面付2.0生成支付二维码
-        pay(order);
+      ServerResponse serverResponse=   pay(order);
 
-        return null;
+        return serverResponse;
     }
 
+    @Override
+    public String alipayCallback(Map<String, String> map) {
 
+        //step1：获取订单号
+      String orderNo=  map.get("out_trade_no");
+      //订单状态
+      String tradeStatus=map.get("trade_status");
+     //支付宝流水号
+        String tradeNo=map.get("trade_no");
+        //查询订单
+       Order order= orderMapper.selectOrderByOrderNo(Long.parseLong(orderNo));
+       if(order!=null){
+           if(tradeStatus.equals("TRADE_SUCCESS")){
+               //支付成功
+               Order order1=new Order();
+               order1.setOrderNo(Long.parseLong(orderNo));
+               order1.setStatus(20);//已付款
+               order1.setPaymentTime(new Date());
+               orderMapper.updateOrderByOrderNo(order1);
+               //添加到支付信息表
+               PayInfo payInfo=new PayInfo();
+               payInfo.setOrderNo(Long.parseLong(orderNo));
+               payInfo.setUserId(order.getUserId());
+               payInfo.setPayPlatform(Const.PayPlatformEnum.PAY_ALIPAY.getStatus());
+               payInfo.setPlatformNumber(tradeNo);
+               payInfoMapper.insert(payInfo);
+             return "success";
+           }
+       }
+        return "failed";
+    }
+
+    @Override
+    public ServerResponse query_order_pay_status(Long orderNo) {
+        //step1:根据orderNo查询订单
+       Order order= orderMapper.selectOrderByOrderNo(orderNo);
+       if(order==null){
+           return ServerResponse.createByError("订单不存在");
+       }
+       if(order.getStatus()>=Const.OrderStatusEnum.ORDER_PAYED.getStatus()){
+
+           return ServerResponse.createBySuccess(true);
+       }
+        return ServerResponse.createBySuccess(false);
+    }
 
 
     ////////////////////支付///////////////////////////////////////////////////
@@ -726,7 +773,7 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     // 测试当面付2.0生成支付二维码
-    public void pay(Order order) {
+    public ServerResponse pay(Order order) {
         // (必填) 商户网站订单系统中唯一订单号，64个字符以内，只能包含字母、数字、下划线，
         // 需保证商户系统端不能重复，建议通过数据库sequence生成，
         String outTradeNo =String.valueOf(order.getOrderNo());
@@ -782,7 +829,7 @@ public class OrderServiceImpl implements IOrderService {
                 .setUndiscountableAmount(undiscountableAmount).setSellerId(sellerId).setBody(body)
                 .setOperatorId(operatorId).setStoreId(storeId).setExtendParams(extendParams)
                 .setTimeoutExpress(timeoutExpress)
-                .setNotifyUrl("http://p9drcd.natappfree.cc/business/order/alipay_callback.do")//支付宝服务器主动通知商户服务器里指定的页面http路径,根据需要设置
+                .setNotifyUrl("http://izt2kt.natappfree.cc/business/order/alipay_callback.do")//支付宝服务器主动通知商户服务器里指定的页面http路径,根据需要设置
                 .setGoodsDetailList(goodsDetailList);
 
         AlipayF2FPrecreateResult result = tradeService.tradePrecreate(builder);
@@ -798,7 +845,10 @@ public class OrderServiceImpl implements IOrderService {
                         response.getOutTradeNo());
                 log.info("filePath:" + filePath);
                 ZxingUtils.getQRCodeImge(response.getQrCode(), 256, filePath);
-                break;
+                Map<String,String> map= Maps.newHashMap();
+                map.put("orderNo",String.valueOf(order.getOrderNo()));
+                map.put("qrPath",PropertiesUtil.getProperty("imagehost")+"qr-"+response.getOutTradeNo()+".png");
+                return ServerResponse.createBySuccess(map);
 
             case FAILED:
                 log.error("支付宝预下单失败!!!");
@@ -812,6 +862,7 @@ public class OrderServiceImpl implements IOrderService {
                 log.error("不支持的交易状态，交易返回异常!!!");
                 break;
         }
+        return ServerResponse.createByError("支付失败");
     }
 
 
