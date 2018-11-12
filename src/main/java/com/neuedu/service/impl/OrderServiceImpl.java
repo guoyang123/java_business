@@ -35,6 +35,7 @@ import com.neuedu.pojo.Product;
 import com.neuedu.service.IOrderService;
 import com.neuedu.utils.BigDecimalUtil;
 import com.neuedu.utils.DateUtil;
+import com.neuedu.utils.FTPUtils;
 import com.neuedu.utils.PropertiesUtil;
 import com.neuedu.vo.OrderItemVO;
 import com.neuedu.vo.OrderProductVO;
@@ -47,6 +48,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -397,7 +400,7 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public ServerResponse pay(Integer userId, Long orderNo) {
+    public ServerResponse pay(Integer userId, Long orderNo,String path) {
        //step：参数校验
         if(orderNo==null){
             return  ServerResponse.createByError("订单号不能为空");
@@ -410,7 +413,7 @@ public class OrderServiceImpl implements IOrderService {
         }
         //支付
         // 测试当面付2.0生成支付二维码
-      ServerResponse serverResponse=   pay(order);
+      ServerResponse serverResponse=   pay(order,path);
 
         return serverResponse;
     }
@@ -773,7 +776,7 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     // 测试当面付2.0生成支付二维码
-    public ServerResponse pay(Order order) {
+    public ServerResponse pay(Order order,String path) {
         // (必填) 商户网站订单系统中唯一订单号，64个字符以内，只能包含字母、数字、下划线，
         // 需保证商户系统端不能重复，建议通过数据库sequence生成，
         String outTradeNo =String.valueOf(order.getOrderNo());
@@ -841,10 +844,20 @@ public class OrderServiceImpl implements IOrderService {
                 dumpResponse(response);
 
                 // 需要修改为运行机器上的路径
-                String filePath = String.format("D:/ftpfile/qr-%s.png",
+                String filePath = String.format(path+"/qr-%s.png",
                         response.getOutTradeNo());
                 log.info("filePath:" + filePath);
                 ZxingUtils.getQRCodeImge(response.getQrCode(), 256, filePath);
+
+                File qrcodeFile=new File(filePath);
+                try {
+                    FTPUtils.uploadFile(Lists.newArrayList(qrcodeFile));
+                    qrcodeFile.delete();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
                 Map<String,String> map= Maps.newHashMap();
                 map.put("orderNo",String.valueOf(order.getOrderNo()));
                 map.put("qrPath",PropertiesUtil.getProperty("imagehost")+"qr-"+response.getOutTradeNo()+".png");

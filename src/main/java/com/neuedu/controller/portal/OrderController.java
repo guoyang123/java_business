@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.io.File;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -106,7 +107,12 @@ public class OrderController {
         if(userInfo==null){//需要登录
             return ServerResponse.createByError(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
         }
-        return orderService.pay(userInfo.getId(),orderNo);
+       String uploadPath= session.getServletContext().getRealPath("upload");
+        File uploadFile=new File(uploadPath);
+        if(!uploadFile.exists()){
+            uploadFile.mkdirs();
+        }
+        return orderService.pay(userInfo.getId(),orderNo,uploadPath);
     }
 
 

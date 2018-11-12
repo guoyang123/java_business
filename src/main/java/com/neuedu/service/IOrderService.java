@@ -38,7 +38,7 @@ public interface IOrderService {
    /**
     * 前台-下单支付
     * */
-  ServerResponse  pay(Integer userId, Long orderNo);
+  ServerResponse  pay(Integer userId, Long orderNo,String path);
   /**
    * 支付宝回调接口
    * */
