@@ -30,19 +30,7 @@ public class CategoryManageController {
                                        String categoryName,
                                        HttpSession session){
 
-        //用户是否登录
-       UserInfo userInfo=(UserInfo) session.getAttribute(Const.CURRENT_USER);
-        if(userInfo==null){//需要登录
-            return ServerResponse.createByError(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
-        }
-        //是否有管理员权限
-        ServerResponse serverResponse=userService.checkUserAdmin(userInfo);
-        if(serverResponse.isSuccess()){//有管理员权限
-          return categoryService.addCategory(parentId,categoryName);
-        }else{
-            return ServerResponse.createByError("用户无权限操作");
-
-        }
+        return categoryService.addCategory(parentId,categoryName);
 
     }
 
@@ -52,20 +40,7 @@ public class CategoryManageController {
      * */
     @RequestMapping(value ="/get_category.do")
     public  ServerResponse  get_category(int categoryId,HttpSession session){
-
-        //用户是否登录
-        UserInfo userInfo=(UserInfo) session.getAttribute(Const.CURRENT_USER);
-        if(userInfo==null){//需要登录
-            return ServerResponse.createByError(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
-        }
-        //是否有管理员权限
-        ServerResponse serverResponse=userService.checkUserAdmin(userInfo);
-        if(serverResponse.isSuccess()){//有管理员权限
-            return categoryService.getCategory(categoryId);
-        }else{
-            return ServerResponse.createByError("用户无权限操作");
-
-        }
+        return categoryService.getCategory(categoryId);
     }
     /**
      * 修改子节点
@@ -73,19 +48,7 @@ public class CategoryManageController {
     @RequestMapping(value ="/set_category_name.do")
     public  ServerResponse  set_category_name(Integer categoryId,String categoryName,HttpSession session){
 
-        //用户是否登录
-        UserInfo userInfo=(UserInfo) session.getAttribute(Const.CURRENT_USER);
-        if(userInfo==null){//需要登录
-            return ServerResponse.createByError(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
-        }
-        //是否有管理员权限
-        ServerResponse serverResponse=userService.checkUserAdmin(userInfo);
-        if(serverResponse.isSuccess()){//有管理员权限
-            return categoryService.set_category_name(categoryId,categoryName);
-        }else{
-            return ServerResponse.createByError("用户无权限操作");
-
-        }
+        return categoryService.set_category_name(categoryId,categoryName);
     }
     /**
      * 递归查询后代节点
@@ -93,19 +56,7 @@ public class CategoryManageController {
     @RequestMapping(value ="/get_deep_category.do")
     public  ServerResponse  get_deep_category(Integer categoryId,HttpSession session){
 
-        //用户是否登录
-        UserInfo userInfo=(UserInfo) session.getAttribute(Const.CURRENT_USER);
-        if(userInfo==null){//需要登录
-            return ServerResponse.createByError(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
-        }
-        //是否有管理员权限
-        ServerResponse serverResponse=userService.checkUserAdmin(userInfo);
-        if(serverResponse.isSuccess()){//有管理员权限
-            return categoryService.get_deep_category(categoryId);
-        }else{
-            return ServerResponse.createByError("用户无权限操作");
-
-        }
+        return categoryService.get_deep_category(categoryId);
     }
 
 
