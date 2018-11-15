@@ -58,4 +58,9 @@ public interface OrderMapper {
  * */
  int  updateOrderByOrderNo(Order order);
 
+ /**
+  * 查询需要关闭的订单
+  * */
+  List<Order> findOrderByCreateTime(String closeOrderTime);
+
 }

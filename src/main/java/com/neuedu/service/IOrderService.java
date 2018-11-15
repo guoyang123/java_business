@@ -47,4 +47,11 @@ public interface IOrderService {
  * 查询订单状态
  * */
     ServerResponse query_order_pay_status(Long orderNo);
+    /**
+     * 定时关闭订单
+     * @param  关闭下单时间在closeOrderTimez之前的订单
+     * */
+    void  closeOrder(String closeOrderTime);
+
+
 }

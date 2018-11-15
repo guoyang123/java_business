@@ -39,6 +39,9 @@ public class ProductController {
     }
     @RequestMapping(value = "/detail/{productId}")
     public  ServerResponse productDeatail(@PathVariable("productId") Integer productId){
+
+        //int a=3/0;
+
         return productService.productDeatail(productId);
     }
 }

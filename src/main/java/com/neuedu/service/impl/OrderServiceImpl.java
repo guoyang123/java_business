@@ -47,6 +47,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,6 +69,7 @@ public class OrderServiceImpl implements IOrderService {
     @Autowired
     PayInfoMapper payInfoMapper;
 
+    @Transactional
     @Override
     public ServerResponse createOrder(Integer userid, Integer shippingid) {
 
@@ -87,6 +89,7 @@ public class OrderServiceImpl implements IOrderService {
             List<OrderItem> orderItemList=(List<OrderItem>)serverResponse.getData();
            BigDecimal orderTotalPrice= getOrderTotalPrice(orderItemList);
          Order order= assembleOrder(userid,shippingid,orderTotalPrice);
+         //int a=3/0;
          if(order==null){
              return  ServerResponse.createByError("生成订单失败");
          }
@@ -462,6 +465,33 @@ public class OrderServiceImpl implements IOrderService {
            return ServerResponse.createBySuccess(true);
        }
         return ServerResponse.createBySuccess(false);
+    }
+
+    @Override
+    public void closeOrder(String closeOrderTime) {
+
+        List<Order> orderList=orderMapper.findOrderByCreateTime(closeOrderTime);
+        if(orderList!=null&&orderList.size()>0){
+
+            for(Order order:orderList){
+                List<OrderItem> orderItemList=orderItemMapper.selectAllByUseridAndOrderNo(order.getUserId(),order.getOrderNo());
+                if(orderItemList!=null&&orderItemList.size()>0){
+                    for(OrderItem orderItem:orderItemList){
+                       Product product= productMapper.selectByPrimaryKey(orderItem.getProductId());
+                       if(product==null){
+                           continue;
+                       }
+                       product.setStock(product.getStock()+orderItem.getQuantity());
+                       //更新商品库存
+                       productMapper.updateByPrimaryKeySelective(product);
+                    }
+                }
+                order.setStatus(Const.OrderStatusEnum.ORDER_CANCELLED.getStatus());
+                order.setCloseTime(new Date());
+                orderMapper.updateByPrimaryKey(order);
+            }
+        }
+
     }
 
 
